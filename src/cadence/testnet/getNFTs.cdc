@@ -2969,7 +2969,7 @@ pub fun getProShop5(owner: PublicAccount, id: UInt64): NFTData? {
     let nft = col!.borrowProShop(id: id)
     if nft == nil { return nil }
     let metadata = nft!.metadata
-    
+
      return NFTData(
         contract: contract,
         id: nft!.id,
@@ -2982,7 +2982,7 @@ pub fun getProShop5(owner: PublicAccount, id: UInt64): NFTData? {
         metadata: {},
      )
 }
-     
+
 // https://flow-view-source.com/mainnet/account/0xa4e9020ad21eb30b/contract/QRLNFT
 pub fun getQRLNFT(owner: PublicAccount, id: UInt64): NFTData? {
     let contract = NFTContractData(
