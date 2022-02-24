@@ -46,6 +46,8 @@ import TheFabricantS1ItemNFT from 0x9e03b1f871b3513
 import Andbox_NFT from 0x329feb3ab062d289
 import ZeedzINO from 0xe1c34bb70fbb5357
 import Kicks from 0xf3cc54f4d91c2f6c
+import BarterYardPackNFT from 0xa95b021cf8a30d80
+import MetadataViews from 0x1d7e57aa55817448
 import DayNFT from 0x1600b04bf033fb99
 import Costacos_NFT from 0x329feb3ab062d289
 import Canes_Vault_NFT from 0x329feb3ab062d289
@@ -57,6 +59,7 @@ import DGD_NFT from 0x329feb3ab062d289
 import MetadataViews from 0x1d7e57aa55817448
 import StarlyMetadataViews from 0x5b82f21c0edf76e3
 import StarlyCard from 0x5b82f21c0edf76e3
+
 
 pub struct NFTCollection {
     pub let owner: Address
@@ -196,6 +199,7 @@ pub fun main(ownerAddress: Address, ids: {String:[UInt64]}): [NFTData?] {
                 case "TheFabricantS1ItemNFT": d = getTheFabricantS1ItemNFT(owner: owner, id: id)
                 case "ZeedzINO" : d = getZeedzINO(owner: owner, id: id)
                 case "Kicks" : d = getKicksSneaker(owner: owner, id: id)
+                case "BarterYardPack": d = getBarterYardPack(owner: owner, id: id)
                 case "DayNFT" : d = getDayNFT(owner: owner, id: id)
                 case "Costacos_NFT": d = getCostacosNFT(owner: owner, id: id)
                 case "Canes_Vault_NFT": d = getCanesVaultNFT(owner: owner, id: id)
@@ -2097,6 +2101,43 @@ pub fun getKicksSneaker(owner: PublicAccount, id: UInt64): NFTData? {
         media: media,
         metadata: metadata,
     )
+}
+
+pub fun getBarterYardPack(owner: PublicAccount, id: UInt64): NFTData? {
+  let contract = NFTContract(
+        name: "BarterYardPack",
+        address: 0xa95b021cf8a30d80,
+        storage_path: "BarterYardPackNFT.CollectionStoragePath",
+        public_path: "BarterYardPackNFT.CollectionPublicPath",
+        public_collection_name: "BarterYardPackNFT.BarterYardPackNFTCollectionPublic",
+        external_domain: "https://barteryard.club"
+    )
+
+  let collection = owner.getCapability(BarterYardPackNFT.CollectionPublicPath)
+        .borrow<&{ BarterYardPackNFT.BarterYardPackNFTCollectionPublic }>()!
+  if collection == nil { return nil }
+
+  let nft = collection.borrowBarterYardPackNFT(id: id)!
+      // Get the basic display information for this NFT
+  let view = nft.resolveView(Type<MetadataViews.Display>())!
+  let display = view as! MetadataViews.Display
+  let ipfsFile = display.thumbnail as! MetadataViews.IPFSFile
+  let packPartView = nft.resolveView(Type<BarterYardPackNFT.PackMetadataDisplay>())!
+  let packMetadata = packPartView as! BarterYardPackNFT.PackMetadataDisplay
+  let edition = packMetadata.edition
+  return NFTData(
+    contract: contract,
+    id: id,
+    uuid: nil,
+    title: display.name.concat(" #").concat(edition.toString()),
+    description: display.description,
+    external_domain_view_url: "https://barteryard.club/nft/".concat(id.toString()),
+    token_uri: nil,
+    media: [NFTMedia(uri: "https://ipfs.io/ipfs/".concat(ipfsFile.cid), mimetype: "image")],
+    metadata: {
+      "pack": display.name
+    },
+  )
 }
 
 // https://flow-view-source.com/mainnet/account/0x1600b04bf033fb99/contract/DayNFT
