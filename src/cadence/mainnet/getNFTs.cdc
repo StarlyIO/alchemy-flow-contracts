@@ -20,6 +20,7 @@ import RaceDay_NFT from 0x329feb3ab062d289
 import RareRooms_NFT from 0x329feb3ab062d289
 import RCRDSHPNFT from 0x6c3ff40b90b928ab
 import SportsIconCollectible from 0x8de96244f54db422
+import StarlyCard from 0x5b82f21c0edf76e3
 import CaaPass from 0x98c9c2e548b84d31
 import TuneGO from 0x0d9bc5af3fc0c2e3
 import MatrixWorldFlowFestNFT from 0x2d2750f240198f91
@@ -56,9 +57,8 @@ import The_Next_Cartel_NFT from 0x329feb3ab062d289
 import Atheletes_Unlimited_NFT from 0x329feb3ab062d289
 import Art_NFT from 0x329feb3ab062d289
 import DGD_NFT from 0x329feb3ab062d289
-import MetadataViews from 0x1d7e57aa55817448
-import StarlyMetadataViews from 0x5b82f21c0edf76e3
-import StarlyCard from 0x5b82f21c0edf76e3
+import GogoroCollectible from 0x8c9bbcdcd7514081
+import YahooCollectible from 0x758252ab932a3416
 
 
 pub struct NFTCollection {
@@ -208,6 +208,8 @@ pub fun main(ownerAddress: Address, ids: {String:[UInt64]}): [NFTData?] {
                 case "Atheletes_Unlimited_NFT": d = getAthletesUnlimitedNFT(owner: owner, id: id)
                 case "Art_NFT": d = getArtNFT(owner: owner, id: id)
                 case "DGD_NFT": d = getDGDNFT(owner: owner, id: id)
+                case "GogoroCollectible": d = getGogoroCollectibleNFT(owner: owner, id: id)
+                case "YahooCollectible": d = getYahooCollectibleNFT(owner: owner, id: id)
 
                 default:
                     panic("adapter for NFT not found: ".concat(key))
@@ -1170,33 +1172,6 @@ pub fun getStarlyCard(owner: PublicAccount, id: UInt64): NFTData? {
 
     let nft = col!.borrowStarlyCard(id: id)
     if nft == nil { return nil }
-
-    let viewResolver = col!.borrowViewResolver(id: id)
-    let view = viewResolver.resolveView(Type<StarlyMetadataViews.CardEdition>())
-    if let metadata = view as! StarlyMetadataViews.CardEdition? {
-        return NFTData(
-            contract: contract,
-            id: nft!.id,
-            uuid: nft!.uuid,
-            title: metadata.card.title,
-            description: metadata.card.description,
-            external_domain_view_url: metadata.url,
-            token_uri: nil,
-            media: [NFTMedia(uri: metadata.card.mediaSizes[0].url, mimetype: metadata.card.mediaType)],
-            metadata: {
-                "id": nft!.starlyID,
-                "rarity": metadata.card.rarity,
-                "collectionID": metadata.collection.id,
-                "collectionTitle": metadata.collection.title,
-                "cardID": metadata.card.id,
-                "edition": metadata.edition,
-                "editions": metadata.card.editions,
-                "previewUrl": metadata.previewUrl,
-                "creatorName": metadata.collection.creator.name,
-                "creatorUsername": metadata.collection.creator.username
-            }
-        )
-    }
 
     return NFTData(
         contract: contract,
@@ -2558,6 +2533,85 @@ pub fun getDGDNFT(owner: PublicAccount, id: UInt64): NFTData? {
             "max_editions": nftEditions!,
             "set_id": nft!.setId,
             "series_id": seriesId!
+        }
+    )
+}
+
+// https://flow-view-source.com/mainnet/account/0x8c9bbcdcd7514081/contract/GogoroCollectible
+pub fun getGogoroCollectibleNFT(owner: PublicAccount, id: UInt64): NFTData? {
+    let contract = NFTContract(
+        name: "GogoroCollectible",
+        address: 0x8c9bbcdcd7514081,
+        storage_path: "GogoroCollectible.CollectionStoragePath",
+        public_path: "GogoroCollectible.CollectionPublicPath",
+        public_collection_name: "GogoroCollectible.CollectionPublic",
+        external_domain: "https://www.gogoro.com/",
+    )
+
+    let col = owner.getCapability(GogoroCollectible.CollectionPublicPath)
+        .borrow<&{GogoroCollectible.CollectionPublic}>()
+    if col == nil { return nil }
+
+    let nft = col!.borrowGogoroCollectible(id: id)
+    if nft == nil { return nil }
+
+    let metadata = nft!.getMetadata()!
+    let additional = metadata.getAdditional()
+
+    return NFTData(
+        contract: contract,
+        id: nft!.id,
+        uuid: nft!.uuid,
+        title: metadata.name,
+        description: metadata.description,
+        external_domain_view_url: "https://bay.blocto.app/flow/gogoro/".concat(nft!.id.toString()),
+        token_uri: nil,
+        media: [
+            NFTMedia(uri: additional["mediaUrl"]!, mimetype: metadata.mediaType)
+        ],
+        metadata: {
+            "rarity": additional["rarity"]!,
+            "editionNumber": nft!.editionNumber,
+            "editionCount": metadata.itemCount
+        }
+    )
+}
+
+// https://flow-view-source.com/mainnet/account/0x758252ab932a3416/contract/YahooCollectible
+pub fun getYahooCollectibleNFT(owner: PublicAccount, id: UInt64): NFTData? {
+    let contract = NFTContract(
+        name: "YahooCollectible",
+        address: 0x758252ab932a3416,
+        storage_path: "YahooCollectible.CollectionStoragePath",
+        public_path: "YahooCollectible.CollectionPublicPath",
+        public_collection_name: "YahooCollectible.CollectionPublic",
+        external_domain: "https://tw.yahoo.com/",
+    )
+
+    let col = owner.getCapability(YahooCollectible.CollectionPublicPath)
+        .borrow<&{YahooCollectible.CollectionPublic}>()
+    if col == nil { return nil }
+
+    let nft = col!.borrowYahooCollectible(id: id)
+    if nft == nil { return nil }
+
+    let metadata = nft!.getMetadata()!
+
+    return NFTData(
+        contract: contract,
+        id: nft!.id,
+        uuid: nft!.uuid,
+        title: metadata.name,
+        description: metadata.description,
+        external_domain_view_url: "https://bay.blocto.app/flow/yahoo/".concat(nft!.id.toString()),
+        token_uri: nil,
+        media: [
+            NFTMedia(uri: "https://ipfs.io/ipfs/".concat(metadata.mediaHash), mimetype: metadata.mediaType)
+        ],
+        metadata: {
+            "rarity": metadata.getAdditional()["rarity"]!,
+            "editionNumber": nft!.editionNumber,
+            "editionCount": metadata.itemCount
         }
     )
 }
