@@ -21,6 +21,10 @@ BarterYard)
   echo "Barter Yard Club"
   flow scripts execute getNFTIDs.cdc 0x4300fc3a11778a9a --network testnet
   ;;
+BarterYardClubWerewolf)
+  echo "Barter Yard Club"
+  flow scripts execute getNFTIDs.cdc 0x195caada038c5806 --network testnet
+  ;;
 NFTContract)
   echo "NFTContract"
   flow scripts execute getNFTIDs.cdc 0x0add010813a8c23f --network testnet
@@ -32,7 +36,7 @@ DayNFT)
 NowggNFT)
   echo "NowggNFT"
   flow scripts execute getNFTIDs.cdc 0x8cfe54881e5edd9b --network testnet
-  ;; 
+  ;;
 GogoroCollectible)
   echo "GogoroCollectible"
   flow scripts execute getNFTIDs.cdc 0x42bd08a9f3724129 --network testnet
